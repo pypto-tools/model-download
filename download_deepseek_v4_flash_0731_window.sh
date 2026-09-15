@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Download DeepSeek-V4-Flash-0731 only during the Beijing-time night window.
+# Download DeepSeek-V4.1-Flash only during the Beijing-time night window.
 # Intended for a daily 22:00 Asia/Shanghai cron. If invoked manually, it also
 # refuses daytime runs and computes the exact remaining time until 08:00.
 set -u
@@ -7,9 +7,9 @@ set -u
 export TZ='Asia/Shanghai'
 
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-MODEL='deepseek-ai/DeepSeek-V4-Flash-0731'
-DEST='/data/models/DeepSeek-V4-Flash-0731'
-WINDOW_LOG="$HERE/download-deepseek-ai_DeepSeek-V4-Flash-0731-window.log"
+MODEL='deepseek-ai/DeepSeek-V4.1-Flash'
+DEST='/srv/models/DeepSeek-V4.1-Flash'
+WINDOW_LOG="$HERE/download-deepseek-ai_DeepSeek-V4.1-Flash-window.log"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S %Z')] $*" >>"$WINDOW_LOG"; }
 

@@ -85,10 +85,16 @@ tail -f download-<slug>.log          # slug = 模型 ID 把 / 和空格换成 _
 - **`.msc` 进度索引别乱删**:`<dest>/.msc` 是 modelscope 记录"哪些文件已下完"的索引(pickle 的 `[{Path,Revision},...]`)。删了它会导致**已完成的文件不被识别、全部重下**(那句 "re-validate" 提示只对索引里已有的条目生效)。只有当 `.msc` 属于别的用户、当前用户读写不了时才需要删,删后应按 final 目录里"大小==官方 Size"的文件重建索引,否则白下。
 - **venv 维护**:升级 modelscope —— `source .venv/bin/activate && pip install -U modelscope`。
 
-## 现有定时任务
+## 当前机器配置（2026-09-15）
 
-- `CRON_TZ=Asia/Shanghai`;`0 22 * * *` → 每天北京时间 22:00 启动
-  `download_deepseek_v4_flash_0731_window.sh`,直连续传
-  `deepseek-ai/DeepSeek-V4-Flash-0731` 到 `/data/models/DeepSeek-V4-Flash-0731`。
-  包装器会在北京时间 08:00 停止下载,下一晚继续;完成后检测到
-  `.download_complete` 并自动空跑。
+- 仓库路径：`/home/pyptouser/mj/model-download`；使用本目录 `.venv`（ModelScope 1.37.0）。
+- 模型来源：https://modelscope.cn/models/deepseek-ai/DeepSeek-V4.1-Flash
+- 公共下载路径：`/srv/models/DeepSeek-V4.1-Flash`，所有本地用户可读取。
+- 入口仍为 `download_deepseek_v4_flash_0731_window.sh`（保留旧文件名），
+  调用现有 `download_model.sh`，北京时间 22:00 开始、08:00 停止，下一晚续传。
+- 系统任务：`/etc/cron.d/model-download`，设置 `CRON_TZ=Asia/Shanghai`，
+  内容为 `0 22 * * * mj /home/pyptouser/mj/model-download/download_deepseek_v4_flash_0731_window.sh`。
+- 进度日志：仓库内 `download-deepseek-ai_DeepSeek-V4.1-Flash.log`；
+  完成标记：下载目录内 `.download_complete`。
+- 后续迁移只需调整夜间入口的 `MODEL`、`DEST`、`WINDOW_LOG` 和 cron 中的仓库路径；
+  复用现有断点续传、重试和时间窗口逻辑。通用脚本默认仍为 `/data/models`，夜间入口显式传入上述公共路径。
