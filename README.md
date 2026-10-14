@@ -2,13 +2,22 @@
 
 ModelScope 大模型下载 / 断点续传工具。共用一个独立 venv,幂等、断网自动重试、可定时。
 
+## 共享服务器下载约束
+
+- 常用时段禁止下载大模型。先确认目标服务器允许下载的时区和时间窗口；没有明确窗口时不要启动。定时任务需要在窗口结束时停止仍在运行的下载，不能只设置夜间启动的 cron。
+- 模型下载不能走 AI 代理，优先使用可直连的国内模型源。本工具的通用下载脚本会清除常见代理环境变量并使用 ModelScope 国内站；其他下载方式也要单独核对出口路径。
+- `download_model.sh` **不检查下载窗口**，直接调用会立即下载。仓库中的 `download_deepseek_v4_flash_0731_window.sh` 只适用于脚本内写死的模型、路径和北京时间 22:00–08:00 窗口；其他模型或服务器需先配置自己的窗口入口。
+- 通用脚本会将下载目录设为所有本机用户可读，只用于允许这样共享的模型。下载前检查授权、磁盘空间和已有任务；完成后校验文件并移除临时定时任务。
+
+AI 操作入口见 [`skills/model-download/SKILL.md`](skills/model-download/SKILL.md)。
+
 ## 安装
 
 需要 Python 3.10+、`flock`，以及 GNU `coreutils`（定时窗口脚本还需要
 `util-linux` 提供的 `ionice`）。
 
 ```bash
-git clone https://github.com/doraemonmj/model-download.git
+git clone https://github.com/pypto-tools/model-download.git
 cd model-download
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
@@ -29,7 +38,7 @@ python3 -m venv .venv
 ## 通用脚本用法
 
 ```bash
-# 立刻下载(目标目录默认 /data/models/<模型名>)
+# 仅在允许窗口内且已有到点停止机制时执行；默认目录为 /data/models/<模型名>
 ./download_model.sh deepseek-ai/DeepSeek-V4-Flash
 
 # 指定目标目录
